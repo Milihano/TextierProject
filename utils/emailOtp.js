@@ -1,4 +1,5 @@
-
+const bcrypt = require('bcrypt')
+const saltRounds = 10
 
 
 
@@ -10,5 +11,23 @@ const generateemailotp = () => {
 }
 
 
+const  password_hash = (password) => {
 
-module.exports = {generateemailotp}
+    return new Promise ((resolve, reject)  => {
+       
+        bcrypt.genSalt(saltRounds, (err, salt) => {
+            bcrypt.hash(password, salt, (err, hash)  => {
+                if (err) {
+                    reject(err)
+                }
+                resolve([hash, salt])
+            })
+        })
+           
+    })
+}
+
+
+
+
+module.exports = {generateemailotp,password_hash}

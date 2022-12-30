@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node inde.js",
     "dev": "nodemon index.js",
+    "migrate":"npx sequelize-cli db:migrate",
+    "undo-migrate":"npx sequelize-cli db:migrate:undo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mujib",

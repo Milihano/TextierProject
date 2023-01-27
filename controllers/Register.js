@@ -4,12 +4,15 @@ const { Op } = require("sequelize")
 const {registerValidation} = require('../validations/joiregistervalidation')
 const {generateemailotp,password_hash} = require('../utils/emailOtp')
 const {sendEmail} = require('../services/emailotp');
-const otp = require('../models/otp');
+const {Otp} = require('../models');
+const {User} = require('../models')
+
 
 
 
 
 const register = async (req,res) => {
+    const _otp = generateemailotp();
 
 
     const {error,value} = registerValidation(req.body)
@@ -21,12 +24,13 @@ const register = async (req,res) => {
     })   
     }
         const {fullname,username,password,email} = req.body
+
         const customer_id = uuidv4();
-        const _otp = generateemailotp()
+        
         
 
     try {
-        await User.findAll({
+        User.findAll({
             where: {
                 [Op.or]: [
                     {username: username},
@@ -35,13 +39,13 @@ const register = async (req,res) => {
             }
         })
         .then((data)=>{
-            if (data.length != 0) {
-                throw new Error `Email or Username already Exist`
+            if (data.length > 0) {
+                throw new Error(`Email or Username already Exist`)
             }
             return password_hash(password)
         })
         .then(([hash,salt])=>{
-            return await User.create({
+            User.create({
                 customer_id: customer_id,
                 fullname: fullname, 
                 username: username,
@@ -52,9 +56,9 @@ const register = async (req,res) => {
         })
         .then((insertIntoOtpTable) => {
     
-            return otp.create({
+            return Otp.create({
                 
-                otp: _otp,
+                Otp: _otp,
                 email: email,
             })
     
@@ -69,23 +73,25 @@ const register = async (req,res) => {
             })
         })
         .catch((err)=>{
+            console.log('here1:',err)
             res.status(400).json({
                 status:false,
                 message:err.message
             })
         })
     } catch (e) {
+        console.log('here2:',e)
         res.status(400).json({
             status:false,
             message:e.message
         })
     }
 }
-const verifyemailOtp = ((req,res)=>{
+const verifyemailOtp = async (req,res)=>{
 
     const {email,_otp}=req.params
     try {
-        otp.findAll({
+        Otp.findAll({
             where: {
                 [Op.and]: [
                     {email: email},
@@ -95,27 +101,33 @@ const verifyemailOtp = ((req,res)=>{
         })
         .then((data)=>{
             if (data.length === 0) {
-                res.status(400).json({
-                    status:false,
-                    message:`Incorrect Otp`
-                })
+                throw new Error(`Invalid Otp...`)
             }
+            res.status(200).send({
+                status:true,
+                message:`Successfully Created.`
+            })
+            return User.update({ is_email_verified: true }, {
+                where: {email: email}
+            })
         })
-        
-
-
-
-
-    } catch (err) {
+        .then((data)=>{
+            Otp.destroy({
+                where: {
+                    otp: _otp,
+                    email: email
+                }
+            })
+        })
+    }
+    catch (err) {
         res.status(400).json({
             status: false,
             message: err.message
-        })
-        
+        })  
     }
         
-})
-
+}
 
 module.exports = {register,verifyemailOtp}
 

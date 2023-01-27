@@ -18,7 +18,8 @@ const Login =( async (req,res)=>{
 
         if (result.length === 0) throw new Error("Username or password is incorrect")
 
-        const passwordHashFromDB = User[0].password_hash
+        const passwordHashFromDB = User[0].dataValues.password_hash
+        // console.log("pw:",passwordHashFromDB)
         const passwordCompare =  await bcrypt.compare(password, passwordHashFromDB)
       
         if (passwordCompare === false) throw new Error("Username or password is incorrect")

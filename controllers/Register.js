@@ -99,7 +99,10 @@ const verifyemailOtp = async (req,res)=>{
                 ]
             }
         })
+        // console.log('this otp:',data)
+        
         .then((data)=>{
+            console.log('this:', data)
             if (data.length === 0) {
                 throw new Error(`Invalid Otp...`)
             }
@@ -119,8 +122,16 @@ const verifyemailOtp = async (req,res)=>{
                 }
             })
         })
+        .catch((err)=>{
+            console.log('here2:',err)
+            res.status(400).json({
+                status:false,
+                message:err.message
+            })
+        })
     }
     catch (err) {
+        console.log(err)
         res.status(400).json({
             status: false,
             message: err.message

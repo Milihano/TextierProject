@@ -50,6 +50,20 @@ module.exports = (sequelize, DataTypes) => {
       type:DataTypes.BOOLEAN,
       defaultValue: false
     },
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
+    },
+    dob: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
+    },
+    country: {
+      type: DataTypes.STRING,
+      defaultValue: null
+    },
   }, {
     sequelize,
     modelName: 'User',

@@ -23,7 +23,7 @@ const register = async (req,res) => {
         message: error.details[0].message
     })   
     }
-        const {fullname,username,password,email} = req.body
+        const {fullname,username,password,repeat_password,email,gender,dob} = req.body
 
         const customer_id = uuidv4();
         
@@ -51,7 +51,9 @@ const register = async (req,res) => {
                 username: username,
                 password_hash: hash,
                 password_salt: salt,
-                email:email
+                email:email,
+                gender:gender,
+                dob:dob
             });
         })
         .then((insertIntoOtpTable) => {

@@ -42,6 +42,20 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue : false
       },
+      gender: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null
+      },
+      dob: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null
+      },
+      country: {
+        type: Sequelize.STRING,
+        defaultValue: null
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

@@ -42,15 +42,22 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue : false
       },
-      gender: {
+      phone_number: {
         type: Sequelize.STRING,
         allowNull: true,
         defaultValue: null
       },
+      is_phone_number_verified: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false
+      },
+      gender: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       dob: {
         type: Sequelize.STRING,
-        allowNull: true,
-        defaultValue: null
+        allowNull: false
       },
       country: {
         type: Sequelize.STRING,

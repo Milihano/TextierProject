@@ -19,6 +19,7 @@ const authorization = async(req, res, next) => {
         const tokenSplit = token.split(' ') // Bearer hjglghlhhkh;j4567890jjkhg78654g
         const decoded = jwt.verify(tokenSplit[1], process.env.JWT_SECRET, (err, decoded) => {
             if (err) throw new Error(err.message)
+            console.log(decoded)
     
             req.body.userData = decoded //req.userData.customer_id is the payload of the token
             next()

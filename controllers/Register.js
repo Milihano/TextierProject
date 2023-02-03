@@ -2,17 +2,20 @@ require('dotenv').config()
 const { v4: uuidv4 } = require('uuid');
 const { Op } = require("sequelize")
 const {registerValidation} = require('../validations/joiregistervalidation')
-const {generateemailotp,password_hash} = require('../utils/emailOtp')
-const {sendEmail} = require('../services/emailotp');
+const {generateotp,password_hash} = require('../utils/otp&hashing')
 const {Otp} = require('../models');
 const {User} = require('../models')
+const jwt = require('jsonwebtoken')
+const {sendEmail}= require('../services/emailotp')
+//const {resetpassword} = require('../controllers/resetpassword')
 
 
 
 
 
 const register = async (req,res) => {
-    const _otp = generateemailotp();
+
+    const _otp = generateotp()
 
 
     const {error,value} = registerValidation(req.body)
@@ -23,9 +26,11 @@ const register = async (req,res) => {
         message: error.details[0].message
     })   
     }
-        const {fullname,username,password,repeat_password,email,gender,dob} = req.body
+        const {fullname,username,password,repeat_password,email,gender,dob,country,phone} = req.body
 
         const customer_id = uuidv4();
+
+        console.log("here 1(gender):",gender)
         
         
 
@@ -53,27 +58,29 @@ const register = async (req,res) => {
                 password_salt: salt,
                 email:email,
                 gender:gender,
-                dob:dob
+                dob:dob,
+                phone_number:phone,
+                country:country,
             });
         })
-        .then((insertIntoOtpTable) => {
-    
-            return Otp.create({
-                
-                Otp: _otp,
-                email: email,
-            })
-    
+        return Otp.create({
+        
+            Otp: _otp,
+            email: email,
+            phone:phone
         })
+        
         .then((sendOtp)=>{
             sendEmail(email,'OTP',`Hello ${fullname} This is The Otp Code, Do Not Share With Anyone \n ${_otp}`)
             
-
+        
             res.status(200).json({
                 status:true,
                 message:`Otp has been successfully sent`
             })
         })
+        
+        
         .catch((err)=>{
             console.log('here1:',err)
             res.status(400).json({
@@ -89,6 +96,7 @@ const register = async (req,res) => {
         })
     }
 }
+
 const verifyemailOtp = async (req,res)=>{
 
     const {email,_otp}=req.params
@@ -141,8 +149,74 @@ const verifyemailOtp = async (req,res)=>{
     }
         
 }
+const resendEmailOtp = async (req, res) => {
 
-module.exports = {register,verifyemailOtp}
+    const { email } = req.params
+    const newOtp = generateOtp()
+
+    try { 
+
+        const findOtpWithEmail =   await Otp.findAll({ where: { email: email } })
+        
+        if (findOtpWithEmail.length == 0) throw new Error('Email does not exist')
+   
+        await Otp.destroy({  where: {  email: email } })
+
+        await Otp.create({ otp: newOtp, email: email })
+        
+        sendEmail(email, 'RESEND OTP', `Hello, your new otp is ${newOtp}`)  
+
+        res.status(200).send({
+            status: true,
+            message: 'otp resent to email'
+        })
+
+
+     
+
+    } catch (e) {
+        console.log(e)
+        res.status(400).json({
+            status: false,
+            message: e.message || "Some error occurred"
+        })
+    }
+
+
+
+
+}
+
+const showprofile = async (req, res) => { 
+
+    const { customer_id } = req.body.userData //from the authorization middleware
+    const UserData = await User.findOne({ where: { customer_id: customer_id } })
+    
+    console.log('Here for profile',UserData)
+    delete UserData.dataValues.password_hash
+    delete UserData.dataValues.password_salt
+    delete UserData.dataValues.customer_id
+    delete UserData.dataValues.id
+    delete UserData.dataValues.is_email_verified
+    delete UserData.dataValues.is_phone_number_verified
+    delete UserData.dataValues.createdAt
+    delete UserData.dataValues.updatedAt
+
+    // UserData.dataValues.accts = accountData
+
+
+    res.status(200).send({
+        status: true,
+        message: 'Customer details successfully fetched',
+        data: UserData
+    })
+        
+
+}
+
+
+
+module.exports = {register,verifyemailOtp,resendEmailOtp,showprofile}
 
     
 

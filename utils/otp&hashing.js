@@ -3,7 +3,7 @@ const saltRounds = 10
 
 
 
-const generateemailotp = () => {
+const generateotp = () => {
 
     const otp = Math.floor(1000 + Math.random() * 9000)
 
@@ -30,4 +30,5 @@ const  password_hash = (password) => {
 
 
 
-module.exports = {generateemailotp,password_hash}
+
+module.exports = {generateotp,password_hash}

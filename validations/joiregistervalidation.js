@@ -9,7 +9,8 @@ const registerValidation = (data) => {
         repeat_password: Joi.ref('password'),
         email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
         gender: Joi.string().required(),
-        dob: Joi.number().integer().min(1900).max(2004),
+        phone: Joi.string().min(2).required(),
+        dob: Joi.number().integer().min(1900).max(2005),
         country: Joi.string().required(),
     })
 

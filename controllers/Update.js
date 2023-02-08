@@ -6,19 +6,17 @@ const jwt = require('jsonwebtoken')
 
 const Updatecustomer = async (req,res)=>{
 
-    const { customer_id } = req.body.userData    
+    console.log('Here for token objects:',req.params.userData)
+
     const{error,value }= updateValidation(req.body)
 
     if (error != undefined) {
         res.status(400).json({
         status:false,
         message: error.details[0].message
-    })}else{
-         //from the authorization middleware
-
-        // console.log('Here 1',customer_id)
-
+    })}else{        
         const { fullname, username, email, gender, phone, country, dob } = req.body
+        const { customer_id } = req.params.userData
         try {
             await User.update({
                 fullname: fullname,
@@ -29,25 +27,17 @@ const Updatecustomer = async (req,res)=>{
                 phone:phone,
                 country: country,
             }, { where: { customer_id: customer_id } })
-
-
-
-
         } catch (err) {
             res.status(400).json({
                 status:false,
                 message:err.message
             })
-        }    
-
-
-
+        }
+        res.status(400).json({
+            status:true,
+            message:"Profile has been successfully updated"
+        })   
     }  
-   
-
-
-
-
 }
 
 

@@ -30,7 +30,7 @@ const register = async (req,res) => {
 
         const customer_id = uuidv4();
 
-        console.log("here 1(gender):",gender)
+        // console.log("here 1(gender):",gender)
         
         
 
@@ -63,11 +63,13 @@ const register = async (req,res) => {
                 country:country,
             });
         })
-        return Otp.create({
+        .then((data)=>{
+            return Otp.create({
         
-            Otp: _otp,
-            email: email,
-            phone:phone
+                Otp: _otp,
+                email: email,
+                phone:phone
+            })
         })
         
         .then((sendOtp)=>{
@@ -79,8 +81,6 @@ const register = async (req,res) => {
                 message:`Otp has been successfully sent`
             })
         })
-        
-        
         .catch((err)=>{
             console.log('here1:',err)
             res.status(400).json({

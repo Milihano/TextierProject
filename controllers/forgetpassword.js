@@ -21,6 +21,7 @@ const forgetpassword = async (res,req)=>{
     }
     
     const{username,email} = req.body
+    console.log(req.body)
 
     User.findAll({
         where: {

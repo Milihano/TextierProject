@@ -21,7 +21,7 @@ const authorization = async(req, res, next) => {
             if (err) throw new Error(err.message)
             console.log(decoded)
     
-            req.body.userData = decoded //req.userData.customer_id is the payload of the token
+            req.params.userData = decoded //req.userData.customer_id is the payload of the token
             next()
         }) //err, decoded
         

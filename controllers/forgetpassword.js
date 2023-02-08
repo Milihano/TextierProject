@@ -1,18 +1,22 @@
-const {User} = require('../models/User')
-const {Otp} = require('../models/Otp')
-const {generateotp} = require('../utils/otp&hashing')
-const {sendEmail}= require('../services/emailotp')
+const {User} = require('../models')
+const {Otp} = require('../models')
+const { Op } = require("sequelize")
+const {generateotp,password_hash} = require('../utils/otp&hashing')
+const {sendEmail} = require('../services/emailotp')
 const {forgetpasswordValidation}= require('../validations/forgetpasswordvalidation')
 
 
 //Giving Error "Cannot destructure property 'username' "
 
-const forgetpassword = async (res,req)=>{
-
+const forgetpassword = async (req,res)=>{
     const _otp = generateotp()
+    //email
+    //check if email exist in the customer table
+    //if yes, sedn an otp to the email
+    //if no. just move ahead
 
     const {error,value} = forgetpasswordValidation(req.body)
-
+    //console.log("error:", error)
     if (error) {
         res.status(400).json({
             status:false,
@@ -20,15 +24,11 @@ const forgetpassword = async (res,req)=>{
         })
     }
     
-    const{username,email} = req.body
-    console.log(req.body)
+    const{email} = req.body
 
     User.findAll({
         where: {
-            [Op.or]: [
-                {username: username},
-                {email:email}
-            ]
+            email:email
         }
     })
     .then((data)=>{
@@ -38,8 +38,17 @@ const forgetpassword = async (res,req)=>{
                 message:`Username or Email Does Not Exist`
             })
         }
-        
+    })
 
+    .then((data)=>{
+        return Otp.create({
+    
+            Otp: _otp,
+            email: email
+        })
+
+    })
+    .then((data)=>{
         sendEmail(email,'OTP',`Hello ${email} This is The Otp Code, Do Not Share With Anyone \n ${_otp}`)
         
     
@@ -48,6 +57,7 @@ const forgetpassword = async (res,req)=>{
             message:`Otp has been successfully sent`
         })
     })
+
     .catch((err)=>{
         console.log('here2:',err)
         res.status(400).json({
@@ -56,7 +66,7 @@ const forgetpassword = async (res,req)=>{
         })
     })
 }
-const verifyforgetotpandputnewpassword = async (req,res)=>{
+const verifyFPotp= async (req,res)=>{
     const {_otp,email} = req.params
     try {
         Otp.findAll({
@@ -68,41 +78,37 @@ const verifyforgetotpandputnewpassword = async (req,res)=>{
             }
         })
         // console.log('this otp:',data)
+        .then((otpdata) => {
+            // console.log(otpdata)
+            if(otpdata.length == 0) throw new Error('Invalid OTP')
+    
+            console.log("otpdataFetched: ", otpdata[0])
+
+            const timeOtpWasSent = Date.now() - new Date(otpdata[0].dataValues.createdAt)
         
-        .then((data)=>{
-            console.log('this:', data)
-            if (data.length === 0) {
-                throw new Error(`Invalid Otp...`)
-            }
-            res.status(200).send({
-                status:true,
-                message:`Successful.`
+            const convertToMin = Math.floor(timeOtpWasSent / 60000) // 60000 is the number of milliseconds in a minute
+
+            if (convertToMin > process.env.OTPExpirationTime) throw new Error('OTP has expired')
+
+            User.update({ is_email_verified: true }, {
+                where: {
+                    email: email
+                }
             })
-        })
-        .then((data)=>{
             Otp.destroy({
                 where: {
                     otp: _otp,
                     email: email
                 }
             })
-        })
-        .then( async ()=>{
-            const {newpassword}= req.body
-            await password_hash(newpassword)
-            .then(([hash,salt])=>{
-                User.update({
-                    password_hash: hash,
-                    password_salt:salt
-                }, { where: { email: email } })
+            res.status(200).send({
+                status:true,
+                message:`Successful.`
             })
-        })
+        })       
         .catch((err)=>{
             console.log('here2:',err)
-            res.status(400).json({
-                status:false,
-                message:err.message
-            })
+            throw new Error(err.message)
         })
     }
     catch (err) {
@@ -114,6 +120,39 @@ const verifyforgetotpandputnewpassword = async (req,res)=>{
     }
 }
 
+const updatepasswordforFP = async (req,res)=>{
+
+    const {newpassword,email}= req.body
+
+    User.findAll({
+        where: {
+            email:email
+        }
+    })
+
+    .then((data)=>{
+        if (data.length==0) {
+            throw new Error(`email doesn't exist`)
+        }
+        return password_hash(newpassword)
+    })
+    .then(([hash,salt])=>{
+
+        User.update({
+            password_hash: hash,
+            password_salt:salt
+        }, { where: { email: email } })
+
+        res.status(200).json({
+            status:true,
+            message:'password has been sucessfuly updated'
+        })
+
+    })
+}
 
 
-module.exports = {forgetpassword,verifyforgetotpandputnewpassword}
+
+module.exports = {forgetpassword,verifyFPotp,updatepasswordforFP}
+
+

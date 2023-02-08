@@ -5,7 +5,7 @@ const {Login} = require('../controllers/Login')
 const {authorization} = require('../middlewares/authorization')
 const {Updatecustomer} = require('../controllers/Update')
 const {changepassword} = require('../controllers/changepassword')
-const {forgetpassword,verifyforgetotpandputnewpassword} = require('../controllers/forgetpassword')
+const {forgetpassword,verifyFPotp,updatepasswordforFP} = require('../controllers/forgetpassword')
 
 
 
@@ -23,9 +23,11 @@ router.get('/profile',authorization,showprofile)
 
 router.put('/resetpassword',changepassword)
 
-router.get('/forget-password',forgetpassword)
+router.get('/forget_password',forgetpassword)
 
-router.get('verifyOtp', verifyforgetotpandputnewpassword)
+router.get('/verifyFPOtp/:_otp/:email', verifyFPotp)
+
+router.put('/updatenewpassword',updatepasswordforFP)
 
 
 

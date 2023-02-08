@@ -3,6 +3,7 @@ const {updateValidation} = require('../validations/update')
 const jwt = require('jsonwebtoken')
 
 //Giving Error Of Userdata is not allowed
+//Fixed.....
 
 const Updatecustomer = async (req,res)=>{
 

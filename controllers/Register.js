@@ -120,8 +120,23 @@ const verifyemailOtp = async (req,res)=>{
                 status:true,
                 message:`Successfully Created.`
             })
+        })
+        .then((otpDataFetched) => {
+            console.log(otpDataFetched)
+            if (otpDataFetched.length == 0) throw new Error('Invalid OTP')
+    
+            console.log("otpdataFetched: ", otpDataFetched[0])
+
+            const timeOtpWasSent = Date.now() - new Date(otpDataFetched[0].dataValues.createdAt)
+        
+            const convertToMin = Math.floor(timeOtpWasSent / 60000) // 60000 is the number of milliseconds in a minute
+
+            if (convertToMin > process.env.OTPExpirationTime) throw new Error('OTP has expired')
+
             return User.update({ is_email_verified: true }, {
-                where: {email: email}
+                where: {
+                  email: email
+                }
             })
         })
         .then((data)=>{

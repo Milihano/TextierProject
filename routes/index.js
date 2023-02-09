@@ -27,7 +27,6 @@ router.get('/forget_password',forgetpassword)
 
 router.get('/verifyFPOtp/:_otp/:email', verifyFPotp)
 
-router.put('/updatenewpassword',updatepasswordforFP)
 
 
 

@@ -9,8 +9,8 @@ const jwt = require('jsonwebtoken')
 const {sendEmail}= require('../services/emailotp')
 //const {resetpassword} = require('../controllers/resetpassword')
 
-
-
+//challenge
+//Tryin to find a way to stop my code from keeping/collecting data after validation is not met with....
 
 
 const register = async (req,res) => {
@@ -110,19 +110,8 @@ const verifyemailOtp = async (req,res)=>{
             }
         })
         // console.log('this otp:',data)
-        
-        .then((data)=>{
-            console.log('this:', data)
-            if (data.length === 0) {
-                throw new Error(`Invalid Otp...`)
-            }
-            res.status(200).send({
-                status:true,
-                message:`Successfully Created.`
-            })
-        })
         .then((otpDataFetched) => {
-            console.log(otpDataFetched)
+            //console.log(otpDataFetched)
             if (otpDataFetched.length == 0) throw new Error('Invalid OTP')
     
             console.log("otpdataFetched: ", otpDataFetched[0])
@@ -145,6 +134,10 @@ const verifyemailOtp = async (req,res)=>{
                     otp: _otp,
                     email: email
                 }
+            }) 
+            res.status(200).send({
+                status:true,
+                message:`Successfully Created errrsirrrrrr.`
             })
         })
         .catch((err)=>{
@@ -204,7 +197,7 @@ const resendEmailOtp = async (req, res) => {
 
 const showprofile = async (req, res) => { 
 
-    const { customer_id } = req.body.userData //from the authorization middleware
+    const { customer_id } = req.params.userData //from the authorization middleware
     const UserData = await User.findOne({ where: { customer_id: customer_id } })
     
     console.log('Here for profile',UserData)

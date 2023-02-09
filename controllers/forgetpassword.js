@@ -1,3 +1,4 @@
+require('dotenv').config()
 const {User} = require('../models')
 const {Otp} = require('../models')
 const { Op } = require("sequelize")
@@ -68,6 +69,7 @@ const forgetpassword = async (req,res)=>{
 }
 const verifyFPotp= async (req,res)=>{
     const {_otp,email} = req.params
+    const {newpassword}= req.body
     try {
         Otp.findAll({
             where: {
@@ -82,37 +84,44 @@ const verifyFPotp= async (req,res)=>{
             // console.log(otpdata)
             if(otpdata.length == 0) throw new Error('Invalid OTP')
     
-            console.log("otpdataFetched: ", otpdata[0])
+            // console.log("otpdataFetched: ", otpdata[0])
 
             const timeOtpWasSent = Date.now() - new Date(otpdata[0].dataValues.createdAt)
         
             const convertToMin = Math.floor(timeOtpWasSent / 60000) // 60000 is the number of milliseconds in a minute
 
             if (convertToMin > process.env.OTPExpirationTime) throw new Error('OTP has expired')
+        })
+        .then((data)=>{
+            return password_hash(newpassword)
+        })
+        .then(([hash,salt])=>{
 
-            User.update({ is_email_verified: true }, {
-                where: {
-                    email: email
-                }
+            User.update({
+                password_hash: hash,
+                password_salt:salt
+            }, { where: { email: email } })
+
+            res.status(200).json({
+                status:true,
+                message:'Password has been sucessfuly updated'
             })
+
             Otp.destroy({
                 where: {
                     otp: _otp,
                     email: email
                 }
             })
-            res.status(200).send({
-                status:true,
-                message:`Successful.`
-            })
-        })       
+
+        })    
         .catch((err)=>{
-            console.log('here2:',err)
+            console.log('here for catch:',err)
             throw new Error(err.message)
         })
     }
     catch (err) {
-        console.log(err)
+        console.log('overall catch:',err)
         res.status(400).json({
             status: false,
             message: err.message
@@ -120,39 +129,6 @@ const verifyFPotp= async (req,res)=>{
     }
 }
 
-const updatepasswordforFP = async (req,res)=>{
-
-    const {newpassword,email}= req.body
-
-    User.findAll({
-        where: {
-            email:email
-        }
-    })
-
-    .then((data)=>{
-        if (data.length==0) {
-            throw new Error(`email doesn't exist`)
-        }
-        return password_hash(newpassword)
-    })
-    .then(([hash,salt])=>{
-
-        User.update({
-            password_hash: hash,
-            password_salt:salt
-        }, { where: { email: email } })
-
-        res.status(200).json({
-            status:true,
-            message:'password has been sucessfuly updated'
-        })
-
-    })
-}
-
-
-
-module.exports = {forgetpassword,verifyFPotp,updatepasswordforFP}
+module.exports = {forgetpassword,verifyFPotp}
 
 

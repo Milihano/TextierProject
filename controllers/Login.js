@@ -24,7 +24,7 @@ const Login = async (req,res)=>{
 
         const hashedpassword = result[0].dataValues.password_hash
 
-        //console.log(hashedpassword)
+        //console.log('herehere111',hashedpassword)
 
         const compare = await bcrypt.compare(password, hashedpassword)
         if (compare === false) {

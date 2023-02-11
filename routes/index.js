@@ -21,7 +21,7 @@ router.put('/update',authorization,Updatecustomer)
 
 router.get('/profile',authorization,showprofile)
 
-router.put('/resetpassword',changepassword)
+router.put('/changepassword',authorization,changepassword)
 
 router.get('/forget_password',forgetpassword)
 

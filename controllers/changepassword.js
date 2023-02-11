@@ -1,6 +1,7 @@
 const {User} = require('../models')
 const {changepasswordValidation} = require('../validations/changepasswordvalidation')
 const jwt = require('jsonwebtoken')
+const{password_hash} = require('../utils/otp&hashing')
 const bcrypt = require('bcrypt')
 
 //Haven't Worked On It Yet
@@ -13,51 +14,46 @@ const changepassword = async (req,res)=>{
         res.status(400).json({
         status:false,
         message: error.details[0].message
-    })}else{
+    })}
+    const { customer_id } = req.params.userData //from the authorization middleware
+    //console.log("here for email",email)
+    const { currentpassword,newpassword,confirmpassword } = req.body
+    
+    try {
+        const result = await User.findAll(
+            { where: { customer_id: customer_id } }
+        )
+       console.log("here",result)
+        const hashedpassword = result[0].dataValues.password_hash
+        console.log('Here for result:', hashedpassword)
 
-        const { customer_id } = req.params.userData //from the authorization middleware
+        const compare = await bcrypt.compare(currentpassword, hashedpassword)
+        if (compare === false) {
+            throw new Error("Password is incorrect")
+        }
+        const compare1 = await bcrypt.compare(newpassword, hashedpassword)
+        if (compare1 === true) {
+            throw new Error("Password can't be the same as old one")
+        }                       
+        const [hash,salt] = await password_hash(newpassword) 
 
-        const { currentpassword,newpassword,confirmpassword } = req.body
-        
-        try {
-            
+        await User.update({
+            password_hash:hash,
+            password_salt:salt
+        }, { where: { customer_id: customer_id } })
 
-            const hashedpassword = result[0].dataValues.password_hash
-            console.log('Here for result:', hashedpassword)
+        res.status(200).json({
+            status:true,
+            message:`Password Successfully Change`
+        })
 
-            const compare = await bcrypt.compare(currentpassword, hashedpassword)
-            if (compare === true) {
-                const compare = await bcrypt.compare(newpassword, hashedpassword)
-                if (compare === true) {
-                    throw new Error("Password can't be the same as old one")
-                }else{
-                    password_hash(newpassword)
-                }
-            }
-            await User.update({
-                password_hash:hash,
-                password_salt:salt
-            }, { where: { customer_id: customer_id } })
-
-            .catch((err)=>{
-                console.log('here for catch:',err)
-                throw new Error(err.message)
-            })
-        } catch (err) {
-            res.status(400).json({
-                status:false,
-                message:err.message
-            })
-        }    
-
-
-
-    }  
-   
-
-
-
-
+    } catch (err) {
+        console.log("Here for err:",err)
+        res.status(400).json({
+            status:false,
+            message:err.message
+        })
+    }    
 }
 
 

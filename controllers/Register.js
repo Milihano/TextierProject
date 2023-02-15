@@ -137,7 +137,7 @@ const verifyemailOtp = async (req,res)=>{
             }) 
             res.status(200).send({
                 status:true,
-                message:`Successfully Created errrsirrrrrr.`
+                message:`Successfully Created.`
             })
         })
         .catch((err)=>{

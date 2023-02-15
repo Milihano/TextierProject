@@ -7,7 +7,7 @@ const {sendEmail} = require('../services/emailotp')
 const {forgetpasswordValidation}= require('../validations/forgetpasswordvalidation')
 
 
-//Giving Error "Cannot destructure property 'username' "
+
 
 const forgetpassword = async (req,res)=>{
     const _otp = generateotp()

@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken')
 const{password_hash} = require('../utils/otp&hashing')
 const bcrypt = require('bcrypt')
 
-//Haven't Worked On It Yet
 
 const changepassword = async (req,res)=>{
 
